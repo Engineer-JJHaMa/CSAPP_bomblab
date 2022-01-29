@@ -12,7 +12,7 @@
   400f60:	83 f8 01             	cmp    $0x1,%eax
   400f63:	7f 05                	jg     400f6a <phase_3+0x27>
   400f65:	e8 d0 04 00 00       	callq  40143a <explode_bomb>
-  // 5. 7이 rsp+8(1번째 정수 x) 보다 크면 터진다.
+  // 5. 7 < rsp+8(1번째 정수 x)이면 터진다.
   400f6a:	83 7c 24 08 07       	cmpl   $0x7,0x8(%rsp)
   400f6f:	77 3c                	ja     400fad <phase_3+0x6a>
   // 6. x -> eax

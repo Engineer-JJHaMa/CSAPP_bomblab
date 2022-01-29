@@ -1,0 +1,75 @@
+000000000040100c <phase_4>:
+  // 1. 24바이트 사용
+  40100c:	48 83 ec 18          	sub    $0x18,%rsp
+  // 2. rsp+12에 두번째 입력값
+  401010:	48 8d 4c 24 0c       	lea    0xc(%rsp),%rcx
+  // 3. rsp+8에 첫번째 입력값
+  401015:	48 8d 54 24 08       	lea    0x8(%rsp),%rdx
+  // 4. 입력양식은 "%d %d" (x y 라고 부르자)
+  40101a:	be cf 25 40 00       	mov    $0x4025cf,%esi
+  40101f:	b8 00 00 00 00       	mov    $0x0,%eax
+  401024:	e8 c7 fb ff ff       	callq  400bf0 <__isoc99_sscanf@plt>
+  401029:	83 f8 02             	cmp    $0x2,%eax
+  40102c:	75 07                	jne    401035 <phase_4+0x29>
+  // 5. 14 < x 이면 뻥
+  40102e:	83 7c 24 08 0e       	cmpl   $0xe,0x8(%rsp)
+  401033:	76 05                	jbe    40103a <phase_4+0x2e>
+  401035:	e8 00 04 00 00       	callq  40143a <explode_bomb>
+  // 6. 14 -> edx
+  40103a:	ba 0e 00 00 00       	mov    $0xe,%edx
+  // 7. 0 -> esi
+  40103f:	be 00 00 00 00       	mov    $0x0,%esi
+  // 8. x -> edi
+  401044:	8b 7c 24 08          	mov    0x8(%rsp),%edi
+  // 9. func4로 이동
+  401048:	e8 81 ff ff ff       	callq  400fce <func4>
+  40104d:	85 c0                	test   %eax,%eax
+  40104f:	75 07                	jne    401058 <phase_4+0x4c>
+  // 25. y == 0이면 클리어?
+  // 이상하다. 중간에 들어간 재귀함수가 폭탄을 건드리지 않고 리턴 결과도 폭탄과 상관이 없다.
+  401051:	83 7c 24 0c 00       	cmpl   $0x0,0xc(%rsp)
+  401056:	74 05                	je     40105d <phase_4+0x51>
+  401058:	e8 dd 03 00 00       	callq  40143a <explode_bomb>
+  40105d:	48 83 c4 18          	add    $0x18,%rsp
+  401061:	c3                   	retq 
+  
+  0000000000400fce <func4>:
+  // 10. 8바이트 사용
+  400fce:	48 83 ec 08          	sub    $0x8,%rsp
+  // 11. edx(14이다.) -> eax
+  400fd2:	89 d0                	mov    %edx,%eax
+  // 12. eax-esi -> eax; 처음에는 14-0
+  400fd4:	29 f0                	sub    %esi,%eax
+  // 13. eax -> ecx
+  400fd6:	89 c1                	mov    %eax,%ecx
+  // 14. ecx>>31 -> ecx
+  400fd8:	c1 e9 1f             	shr    $0x1f,%ecx
+  // 15. eax + ecx -> eax;결과적으로 eax가 양수면 변화가 없고, 음수면 1 커진다.
+  400fdb:	01 c8                	add    %ecx,%eax
+  // 16. eax >> 1 -> eax;2로 나누기
+  400fdd:	d1 f8                	sar    %eax
+  // 17. rax + rsi -> ecx
+  400fdf:	8d 0c 30             	lea    (%rax,%rsi,1),%ecx
+  // 18. x >= ecx 이면 재귀 탈출
+  400fe2:	39 f9                	cmp    %edi,%ecx
+  400fe4:	7e 0c                	jle    400ff2 <func4+0x24>
+  // 19. 아니라면 rcx - 1 -> edx
+  400fe6:	8d 51 ff             	lea    -0x1(%rcx),%edx
+  // 20. 재귀. 결국 edx를 2로 나누어서 edi보다 작거나 같아질때까지 edx/2 - 1로 재귀한다(양수 기준).
+  400fe9:	e8 e0 ff ff ff       	callq  400fce <func4>
+  400fee:	01 c0                	add    %eax,%eax
+  400ff0:	eb 15                	jmp    401007 <func4+0x39>
+  // 21. 0 -> eax
+  400ff2:	b8 00 00 00 00       	mov    $0x0,%eax
+  // 22. x <= ecx 이면 재귀 탈출
+  400ff7:	39 f9                	cmp    %edi,%ecx
+  400ff9:	7d 0c                	jge    401007 <func4+0x39>
+  // 23. 아니라면 rcx + 1 -> esi
+  400ffb:	8d 71 01             	lea    0x1(%rcx),%esi
+  // 24.
+  400ffe:	e8 cb ff ff ff       	callq  400fce <func4>
+  401003:	8d 44 00 01          	lea    0x1(%rax,%rax,1),%eax
+  // 루프 종료
+  401007:	48 83 c4 08          	add    $0x8,%rsp
+  40100b:	c3                   	retq  
+  
